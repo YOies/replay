@@ -1,3 +1,4 @@
+--d
 repeat wait() until game:IsLoaded()
 local replayName = "a.txt"
 local startTime = tick()
@@ -24,30 +25,33 @@ end
 
 
 local function upgrade(info)
-
-    for i,v in pairs(game:GetService("Workspace").Towers:GetChildren()) do 
-        if v:IsA("Model") and v.Name == info.character and v:FindFirstChild("HumanoidRootPart") and v.HumanoidRootPart.CFrame.Position  == stcf2(info.cframe) then 
-            repeat task.wait(.1)
-            local args = {
-                [1] = v
-            }
-            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("Upgrade"):FireServer(unpack(args))
-        until v.UpgradeStar.Value == info.upgradestar
-        end    
-end 
+    local startTime = tick()
+    while tick() - startTime < 1 do 
+        for i, v in pairs(game:GetService("Workspace").Towers:GetChildren()) do
+            if v:IsA("Model") and v.Name == info.character and v:FindFirstChild("HumanoidRootPart") and v.HumanoidRootPart.CFrame.Position == stcf2(info.cframe) then
+                local args = {
+                    [1] = v
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("Upgrade"):FireServer(unpack(args))
+            end
+        end
+        task.wait(0.01)  -- Add a small wait to prevent the loop from running too fast
+    end
 end
 
 local function sell(info)
+    local startTime = tick()
+    while tick() - startTime < 1 do 
     for i,v in pairs(game:GetService("Workspace").Towers:GetChildren()) do 
         if v:IsA("Model") and v.Name == info.character and v:FindFirstChild("HumanoidRootPart") and v.HumanoidRootPart.CFrame.Position == stcf2(info.cframe) then 
-            repeat task.wait(.1)
                 local args = {
                     [1] = v
                 }
                 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("Sell"):FireServer(unpack(args))
-        until v.UpgradeStar.Value == info.upgradestar
         end    
 end 
+task.wait(0.01)  -- Add a small wait to prevent the loop from running too fast
+end
 end
 
 local function waitForUI()
