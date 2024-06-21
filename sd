@@ -1,3 +1,4 @@
+--b
 repeat wait() until game:IsLoaded()
 local replayName = "a.txt"
 local startTime = tick()
@@ -48,27 +49,23 @@ end
 waitForUI()
 
 local tower = 1
-task.spawn(function()
-    while true do
-        if not recordTowers[tower] then
-            break
-        end
-
-        local currentTask = recordTowers[tower]
-
-        if currentTask.time <= tick() - startTime then
-            if currentTask.type == "CreateUnit" then
-                place(currentTask)
-            elseif currentTask.type == "UpgradeUnit" then
-                upgrade(currentTask)
-            elseif currentTask.type == "SellUnit" then
-                sell(currentTask)
-            end
-
-            -- Move to the next task only when the current task is completed
-            recordTowers[tower] = nil
-            tower = tower + 1
-        end
-        wait()  -- Add a short wait to avoid a tight loop
+spawn(function()
+while task.wait() do 
+    if not recordTowers[tower] then 
+        break 
     end
+
+    local currentTask = recordTowers[tower]         
+if (currentTask.time <= tick() - startTime) then 
+         if currentTask.type == "CreateUnit" then 
+        place(currentTask)
+         elseif currentTask.type == "UpgradeUnit" then 
+            upgrade(currentTask)
+         elseif currentTask.type == "SellUnit" then 
+            sell(currentTask)
+         end
+        recordTowers[tower] = nil
+        tower = tower + 1 
+        end 
+ end
 end)
