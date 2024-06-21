@@ -1,5 +1,6 @@
---b
+--d
 repeat wait() until game:IsLoaded()
+
 local replayName = "a.txt"
 local startTime = tick()
 local macro = readfile(replayName)
@@ -15,39 +16,75 @@ local function stcf2(s)
 end
 
 local function place(info)
-    repeat wait(0.1) until tonumber(info.moneyreq) <= game.Players.LocalPlayer.Money.Value
+    repeat
+        wait(0.1)
+    until tonumber(info.moneyreq) <= game.Players.LocalPlayer.Money.Value
+
     local args = {
         [1] = info.character,
         [2] = stcf(info.position),
     }
     game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("SummonTower"):FireServer(unpack(args))
+
+    -- Repeat every 3 seconds until the next task
+    repeat
+        wait(.1)
+        local args = {
+            [1] = info.character,
+            [2] = stcf(info.position),
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("SummonTower"):FireServer(unpack(args))
+    until recordTowers[tower] == nil or recordTowers[tower].type ~= "CreateUnit"
 end
 
-
 local function upgrade(info)
-    for i,v in pairs(game:GetService("Workspace").Towers:GetChildren()) do 
-        if v:IsA("Model") and v.Name == info.character and v:FindFirstChild("HumanoidRootPart") and v.HumanoidRootPart.CFrame.Position  == stcf2(info.cframe) then 
+    -- Find and upgrade the tower
+    for i, v in pairs(game:GetService("Workspace").Towers:GetChildren()) do
+        if v:IsA("Model") and v.Name == info.character and v:FindFirstChild("HumanoidRootPart") and v.HumanoidRootPart.CFrame.Position == stcf2(info.cframe) then
             local args = {
                 [1] = v
             }
             game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("Upgrade"):FireServer(unpack(args))
-        end    
-end 
+
+            -- Repeat every 3 seconds until the next task
+            repeat
+                wait(.1)
+                local args = {
+                    [1] = v
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("Upgrade"):FireServer(unpack(args))
+            until recordTowers[tower] == nil or recordTowers[tower].type ~= "UpgradeUnit"
+
+            break -- Exit the loop once upgraded
+        end
+    end
 end
 
 local function sell(info)
-    for i,v in pairs(game:GetService("Workspace").Towers:GetChildren()) do 
-        if v:IsA("Model") and v.Name == info.character and v:FindFirstChild("HumanoidRootPart") and v.HumanoidRootPart.CFrame.Position == stcf2(info.cframe) then 
+    -- Find and sell the tower
+    for i, v in pairs(game:GetService("Workspace").Towers:GetChildren()) do
+        if v:IsA("Model") and v.Name == info.character and v:FindFirstChild("HumanoidRootPart") and v.HumanoidRootPart.CFrame.Position == stcf2(info.cframe) then
+            local args = {
+                [1] = v
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("Sell"):FireServer(unpack(args))
+
+            -- Repeat every 3 seconds until the next task
+            repeat
+                wait(.1)
                 local args = {
                     [1] = v
                 }
                 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("Sell"):FireServer(unpack(args))
-        end    
-end 
+            until recordTowers[tower] == nil or recordTowers[tower].type ~= "SellUnit"
+
+            break -- Exit the loop once sold
+        end
+    end
 end
 
 local function waitForUI()
-    while true do  
+    while true do
         local uiElement = game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("GameSelection")
         if uiElement and not uiElement.Enabled then
             break
@@ -56,27 +93,28 @@ local function waitForUI()
     end
 end
 
-
 waitForUI()
 
 local tower = 1
 spawn(function()
-while task.wait() do 
-    if not recordTowers[tower] then 
-        break 
-    end
+    while true do
+        if not recordTowers[tower] then
+            break
+        end
 
-    local currentTask = recordTowers[tower]         
-if (currentTask.time <= tick() - startTime) then 
-         if currentTask.type == "CreateUnit" then 
-        place(currentTask)
-         elseif currentTask.type == "UpgradeUnit" then 
-            upgrade(currentTask)
-         elseif currentTask.type == "SellUnit" then 
-            sell(currentTask)
-         end
-        recordTowers[tower] = nil
-        tower = tower + 1 
-        end 
- end
+        local currentTask = recordTowers[tower]
+
+        if currentTask.time <= tick() - startTime then
+            if currentTask.type == "CreateUnit" then
+                place(currentTask)
+            elseif currentTask.type == "UpgradeUnit" then
+                upgrade(currentTask)
+            elseif currentTask.type == "SellUnit" then
+                sell(currentTask)
+            end
+
+            recordTowers[tower] = nil
+            tower = tower + 1
+        end
+    end
 end)
