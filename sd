@@ -1,9 +1,10 @@
---b
+--c
 repeat wait() until game:IsLoaded()
 local replayName = "a.txt"
 local startTime = tick()
-local recordTowers
+local macro = readfile(replayName)
 local httpService = game:GetService("HttpService")
+local recordTowers = httpService:JSONDecode(macro)
 
 local function stcf(s)
     return loadstring("return CFrame.new(" .. s .. ");")()
