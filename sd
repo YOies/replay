@@ -1,4 +1,4 @@
---c
+--d
 repeat wait() until game:IsLoaded()
 local replayName = "a.txt"
 local startTime = tick()
@@ -20,21 +20,30 @@ local function place(info)
 end
 
 local function upgrade(info)
-    local playerUnit = workspace.Towers:WaitForChild(info.character)
-    repeat
-        wait(0.1)
-        local args = {
-            [1] = playerUnit
-        }
-        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("Upgrade"):FireServer(unpack(args))
-    until playerUnit.UpgradeStar.Value == info.upgradestar
+
+    for i,v in pairs(game:GetService("Workspace").Towers:GetChildren()) do 
+        if v:IsA("Model") and v.Name == info.character and v:FindFirstChild("HumanoidRootPart") and v.HumanoidRootPart.CFrame  == stcf(info.cframe) then 
+            repeat task.wait(.1)
+            local args = {
+                [1] = v
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("Upgrade"):FireServer(unpack(args))
+        until v.UpgradeStar.Value == info.upgradestar
+        end    
+end 
 end
 
 local function sell(info)
-    local args = {
-        [1] = info.character
-    }
-    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("Sell"):FireServer(unpack(args))
+    for i,v in pairs(game:GetService("Workspace").Towers:GetChildren()) do 
+        if v:IsA("Model") and v.Name == info.character and v:FindFirstChild("HumanoidRootPart") and v.HumanoidRootPart.CFrame  == stcf(info.cframe) then 
+            repeat task.wait(.1)
+                local args = {
+                    [1] = v
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("Sell"):FireServer(unpack(args))
+        until v.UpgradeStar.Value == info.upgradestar
+        end    
+end 
 end
 
 local function waitForUI()
