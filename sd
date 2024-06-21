@@ -1,0 +1,74 @@
+repeat wait() until game:IsLoaded()
+local replayName = "a.txt"
+local startTime = tick()
+local recordTowers
+local httpService = game:GetService("HttpService")
+
+local function stcf(s)
+    return loadstring("return CFrame.new(" .. s .. ");")()
+end
+
+local function place(info)
+    repeat wait(0.1) until tonumber(info.moneyreq) <= game.Players.LocalPlayer.Money.Value
+    local args = {
+        [1] = info.character,
+        [2] = stcf(info.position),
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("SummonTower"):FireServer(unpack(args))
+end
+
+local function upgrade(info)
+    local playerUnit = workspace.Towers:WaitForChild(info.character)
+    repeat
+        wait(0.1)
+        local args = {
+            [1] = playerUnit
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("Upgrade"):FireServer(unpack(args))
+    until playerUnit.UpgradeStar.Value == info.upgradestar
+end
+
+local function sell(info)
+    local args = {
+        [1] = info.character
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Towers"):WaitForChild("Sell"):FireServer(unpack(args))
+end
+
+local function waitForUI()
+    while true do  
+        local uiElement = game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("GameSelection")
+        if uiElement and not uiElement.Enabled then
+            break
+        end
+        wait()
+    end
+end
+
+waitForUI()
+
+local tower = 1
+task.spawn(function()
+    while true do
+        if not recordTowers[tower] then
+            break
+        end
+
+        local currentTask = recordTowers[tower]
+
+        if currentTask.time <= tick() - startTime then
+            if currentTask.type == "CreateUnit" then
+                place(currentTask)
+            elseif currentTask.type == "UpgradeUnit" then
+                upgrade(currentTask)
+            elseif currentTask.type == "SellUnit" then
+                sell(currentTask)
+            end
+
+            -- Move to the next task only when the current task is completed
+            recordTowers[tower] = nil
+            tower = tower + 1
+        end
+        wait()  -- Add a short wait to avoid a tight loop
+    end
+end)
